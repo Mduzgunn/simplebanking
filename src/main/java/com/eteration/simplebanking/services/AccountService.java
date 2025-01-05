@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-@Transactional
 public class AccountService {
 
     @Autowired
@@ -51,6 +50,7 @@ public class AccountService {
      * @param amount Yatırılacak miktar
      * @return ApiResponse<String> İşlem durumu ve onay kodu
      */
+    @Transactional
     public ApiResponse<String> credit(String accountNumber, double amount) {
         try {
             Account account = accountRepository.findByAccountNumber(accountNumber);
@@ -92,6 +92,7 @@ public class AccountService {
      * @return ApiResponse<String> İşlem durumu ve onay kodu
      * @throws InsufficientBalanceException Yetersiz bakiye durumunda
      */
+    @Transactional
     public ApiResponse<String> debit(String accountNumber, double amount) throws InsufficientBalanceException {
         try {
             Account account = accountRepository.findByAccountNumber(accountNumber);
@@ -148,6 +149,7 @@ public class AccountService {
      * @return ApiResponse<String> İşlem durumu ve onay kodu
      * @throws InsufficientBalanceException Yetersiz bakiye durumunda
      */
+    @Transactional
     public ApiResponse<String> payPhoneBill(String accountNumber, String payee, String phoneNumber, double amount) throws InsufficientBalanceException {
         try {
             Account account = accountRepository.findByAccountNumber(accountNumber);
