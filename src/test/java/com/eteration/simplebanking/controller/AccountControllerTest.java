@@ -93,22 +93,6 @@ class AccountControllerTest {
         verify(accountService).credit("669-7788", 1000.0);
     }
 
-//    @Test
-//    void credit_WhenNullAmount_ShouldReturnBadRequest() {
-//        // Arrange
-//        TransactionDTO request = new TransactionDTO();
-//
-//        // Act
-//        ResponseEntity<TransactionStatus> response = accountController.credit("669-7788", request);
-//
-//        // Assert
-//        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-//        assertNotNull(response.getBody());
-//        assertEquals("ERROR", response.getBody().getStatus());
-//        assertNull(response.getBody().getApprovalCode());
-//        verify(accountService, never()).credit(anyString(), anyDouble());
-//    }
-
     @Test
     void credit_WhenNegativeAmount_ShouldReturnBadRequest() {
         // Arrange
