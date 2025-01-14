@@ -1,8 +1,9 @@
 package com.eteration.simplebanking.dto;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class LogMessage {
+public class LogMessage implements Serializable {
     private String level;
     private String message;
     private String className;

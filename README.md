@@ -45,6 +45,12 @@ cd simplebanking
 docker-compose up -d
 ```
 
+2. Insert data for postgreSQL container:
+```bash
+docker-compose exec postgres psql -U postgres -d simplebanking -f /docker-entrypoint-initdb.d/V2__insert_sample_data.sql
+```
+
+
 This will start:
 - PostgreSQL database
 - RabbitMQ server (check application.properties "app.rabbitmq.logging.enabled" value) 
@@ -157,6 +163,8 @@ The application uses RabbitMQ for logging. Logs can be viewed in:
 - RabbitMQ Management Console: http://localhost:15672
   - Username: guest
   - Password: guest
+
+![](images/rabbitmq-queue.png )
 
 ## Testing
 

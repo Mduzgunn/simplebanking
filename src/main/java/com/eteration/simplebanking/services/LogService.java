@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -22,13 +23,27 @@ public class LogService {
     @Autowired(required = false)
     private RabbitTemplate rabbitTemplate;
 
-    /**
-     * Hata loglarını kaydeder ve RabbitMQ'ya gönderir
-     * @param message Log mesajı
-     * @param className Sınıf adı
-     * @param methodName Metod adı
-     * @param exception Oluşan hata
-     */
+    @PostConstruct
+    public void init() {
+        if (rabbitmqEnabled && rabbitTemplate != null) {
+            try {
+                // Test connection at startup
+                rabbitTemplate.execute(channel -> {
+                    channel.queueDeclarePassive(RabbitMQConfig.QUEUE_NAME);
+                    return null;
+                });
+                logger.info("RabbitMQ connection established successfully");
+                
+                // Send a test message
+                LogMessage testMessage = new LogMessage("INFO", "Application started", this.getClass().getSimpleName(), "init", null);
+                rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY, testMessage);
+                logger.info("Test message sent to RabbitMQ");
+            } catch (Exception e) {
+                logger.error("Failed to establish RabbitMQ connection: {}", e.getMessage());
+            }
+        }
+    }
+
     public void logError(String message, String className, String methodName, Exception exception) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
@@ -48,19 +63,15 @@ public class LogService {
         // Only send to RabbitMQ if enabled
         if (rabbitmqEnabled && rabbitTemplate != null) {
             try {
-                LogMessage mqMessage = new LogMessage();
-                mqMessage.setLevel("ERROR");
-                mqMessage.setMessage(message);
-                mqMessage.setClassName(className);
-                mqMessage.setMethodName(methodName);
-
+                LogMessage mqMessage = new LogMessage("ERROR", message, className, methodName, sw.toString());
                 rabbitTemplate.convertAndSend(
                     RabbitMQConfig.EXCHANGE_NAME,
-                    "error." + className,
+                    RabbitMQConfig.ROUTING_KEY,
                     mqMessage
                 );
+                logger.info("Error message sent to RabbitMQ");
             } catch (Exception e) {
-                logger.warn("Failed to send log to RabbitMQ: {}", e.getMessage());
+                logger.error("Failed to send log to RabbitMQ: {}", e.getMessage());
             }
         }
     }
@@ -85,19 +96,15 @@ public class LogService {
         // Only send to RabbitMQ if enabled
         if (rabbitmqEnabled && rabbitTemplate != null) {
             try {
-                LogMessage mqMessage = new LogMessage();
-                mqMessage.setLevel("INFO");
-                mqMessage.setMessage(message);
-                mqMessage.setClassName(className);
-                mqMessage.setMethodName(methodName);
-
+                LogMessage mqMessage = new LogMessage("INFO", message, className, methodName, null);
                 rabbitTemplate.convertAndSend(
                     RabbitMQConfig.EXCHANGE_NAME,
-                    "info." + className,
+                    RabbitMQConfig.ROUTING_KEY,
                     mqMessage
                 );
+                logger.info("Info message sent to RabbitMQ");
             } catch (Exception e) {
-                logger.warn("Failed to send log to RabbitMQ: {}", e.getMessage());
+                logger.error("Failed to send log to RabbitMQ: {}", e.getMessage());
             }
         }
     }
